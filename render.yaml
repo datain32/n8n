@@ -2,8 +2,7 @@ services:
   - type: web
     name: n8n
     env: node
-    plan: starter            # o standard, como prefieras
-    region: oregon           # o tu región preferida
+    plan: starter
     buildCommand: |
       bash -lc '
       set -e
@@ -13,28 +12,17 @@ services:
       # Compila SOLO el CLI y sus dependencias (evita frontends)
       pnpm -w -r --filter @n8n/cli... build
       '
-    # Arranca dentro del paquete CLI para que resuelva sus dependencias
-    startCommand: bash -lc "cd packages/cli && node ./bin/n8n"
+    # Exporta N8N_PORT desde el PORT que Render asigna en runtime
+    startCommand: |
+      bash -lc '
+      export N8N_PORT=$PORT
+      cd packages/cli
+      node ./bin/n8n
+      '
     envVars:
-      # Render te da un puerto dinámico en ${PORT}. n8n debe escuchar ahí.
-      - key: N8N_PORT
-        value: ${PORT}
-      # Usa Node 20, como en tu curso.
       - key: NODE_VERSION
         value: "20"
-      # (Opcional pero recomendable)
       - key: TZ
         value: America/Bogota
       - key: N8N_DIAGNOSTICS_ENABLED
         value: "false"
-
-    # 💾 Si quieres persistir datos más adelante, descomenta este bloque
-    # y añade también N8N_USER_FOLDER en envVars (ver abajo).
-    # disk:
-    #   name: n8n-data
-    #   mountPath: /var/lib/n8n
-    #   sizeGB: 10
-    #
-    # y en envVars agrega:
-    #   - key: N8N_USER_FOLDER
-    #     value: /var/lib/n8n
